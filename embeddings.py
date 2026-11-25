@@ -1,3 +1,4 @@
+import logging
 import os
 
 import voyageai
@@ -8,6 +9,8 @@ load_dotenv()
 MODEL = "voyage-4-large"
 DIMENSION = 1024  # must match vector(1024) in db/schema.sql
 BATCH_SIZE = 64
+
+logger = logging.getLogger("embeddings")
 
 _api_key = os.getenv("VOYAGE_API_KEY")
 if not _api_key:
@@ -26,6 +29,12 @@ def _embed(texts: list[str], input_type: str) -> list[list[float]]:
         truncation=False,
         output_dimension=DIMENSION,
     )
+    logger.info(
+        "voyage embed: input_type=%s texts=%d tokens=%d",
+        input_type,
+        len(texts),
+        result.total_tokens,
+    )
     return result.embeddings
 
 
@@ -39,4 +48,5 @@ def embed_documents(texts: list[str]) -> list[list[float]]:
 
 def embed_query(text: str) -> list[float]:
     """Embed a search query (used by cari_resep in agent.py)."""
+    logger.info("search query: %s", text)
     return _embed([text], "query")[0]

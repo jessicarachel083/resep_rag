@@ -6,9 +6,9 @@ from pgvector import Vector
 
 from db import get_connection
 from embeddings import embed_documents
+from log_config import setup_logging
 
 RESEP_DIR = Path(__file__).parent / "resep"
-LOG_FILE = Path(__file__).parent / "ingest.log"
 
 logger = logging.getLogger("ingest")
 
@@ -27,15 +27,6 @@ ON CONFLICT (slug) DO UPDATE SET
     vegetarian = EXCLUDED.vegetarian,
     pedas = EXCLUDED.pedas
 """
-
-
-def _setup_logging() -> None:
-    # Same messages go to the terminal and to ingest.log (appended on every run).
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s %(levelname)s %(message)s",
-        handlers=[logging.FileHandler(LOG_FILE, encoding="utf-8"), logging.StreamHandler()],
-    )
 
 
 def _field(lines: list[str], key: str) -> str:
@@ -99,10 +90,10 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    _setup_logging()
+    setup_logging()
     try:
         main()
     except Exception:
-        # Record the failure in ingest.log, then re-raise so the terminal still shows it.
+        # Record the failure in resep_rag.log, then re-raise so the terminal still shows it.
         logger.exception("ingest failed")
         raise
